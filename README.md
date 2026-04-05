@@ -1,88 +1,137 @@
-Finance Data Processing and Access Control Backend
+# 💼 Finance Data Processing & Access Control Backend
 
-Objective:
-This backend project demonstrates role-based access control, financial record management, and dashboard analytics. It is designed for a finance dashboard system where users interact with financial data based on their role.
+## 📌 Overview
 
-Table of Contents
-Project Overview
-Features
-Technology Stack
-Setup Instructions
-Environment Variables
-API Endpoints
-Authentication & Access Control
-Sample Dashboard Response
-Postman Testing Workflow
-Project Overview
+This project is a backend system for a finance dashboard that demonstrates **role-based access control (RBAC)**, **secure authentication**, and **financial data management**.
 
-This project provides a backend for a finance dashboard with:
+It enables organizations to manage users and financial records efficiently while ensuring that access to data is restricted based on user roles.
 
-User Management: Create users, assign roles (ADMIN, ANALYST, VIEWER), and manage user status.
-Financial Records: Create, view, and manage financial records (income/expense) linked to users.
-Dashboard Analytics: Summary of total users, records, income, and expenses.
-Role-Based Access Control: Only authorized users can perform certain actions.
-JWT Authentication: Secure access to APIs with JSON Web Tokens.
+---
 
+## 🚀 Features
 
-Features
+### 👤 User Management
 
-User Management
-Create users (ADMIN only)
-View all users (ADMIN only)
+* Create users (**ADMIN only**)
+* View all users (**ADMIN only**)
+* Assign roles: `ADMIN`, `ANALYST`, `VIEWER`
+* Manage user status (ACTIVE/INACTIVE)
 
-Financial Records
-Create records (ADMIN only)
-View records (ADMIN & ANALYST)
+### 💰 Financial Records
 
-Dashboard
-Get summary data (ADMIN & ANALYST)
-Total users, total records, total income, total expense
+* Create financial records (**ADMIN only**)
+* View records (**ADMIN & ANALYST**)
+* Supports:
 
-Security
-JWT-based authentication
-Role-based authorization for endpoints
+  * Income tracking
+  * Expense tracking
+  * Categorization and date-based records
 
+### 📊 Dashboard Analytics
 
-Technology Stack
-Backend: Node.js, Express.js
-Database: SQLite with Prisma ORM
-Authentication: JWT
-Testing: Postman
+* Get aggregated financial insights:
 
-Setup Instructions
-Clone the repository:
+  * Total users
+  * Total records
+  * Total income
+  * Total expenses
+* Accessible by **ADMIN & ANALYST**
+
+### 🔐 Security
+
+* JWT-based authentication
+* Role-based authorization
+* Protected API endpoints
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer    | Technology            |
+| -------- | --------------------- |
+| Backend  | Node.js, Express.js   |
+| Database | SQLite                |
+| ORM      | Prisma                |
+| Auth     | JSON Web Tokens (JWT) |
+| Testing  | Postman               |
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1️⃣ Clone Repository
+
+```bash
 git clone <repo_url>
-
 cd finance-backend
-Install dependencies:
-npm install
+```
 
-Setup environment variables: Create .env file in root folder
+### 2️⃣ Install Dependencies
+
+```bash
+npm install
+```
+
+### 3️⃣ Configure Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
 PORT=5000
 JWT_SECRET=your_secret_key
+```
 
-Initialize Prisma and database:
+### 4️⃣ Initialize Database
 
+```bash
 npx prisma migrate dev --name init
+```
 
-Start the server:
+### 5️⃣ Start Server
+
+```bash
 node src/app.js
+```
 
-Server will run on: http://localhost:5000
+Server will run at:
 
-Environment Variables
-Variable	Description
-PORT	Port to run the server
-JWT_SECRET	Secret key for JWT signing
-API Endpoints
-User Endpoints
+```
+http://localhost:5000
+```
 
-Create User (ADMIN only)
+---
+
+## 🔑 Authentication & Access Control
+
+All API endpoints require a JWT token:
+
+```
+Authorization: Bearer <token>
+```
+
+### 🎭 Roles & Permissions
+
+| Role    | Permissions                    |
+| ------- | ------------------------------ |
+| ADMIN   | Full access                    |
+| ANALYST | View records & dashboard       |
+| VIEWER  | Read-only (future enhancement) |
+
+---
+
+## 📡 API Endpoints
+
+### 👤 User Endpoints
+
+#### ➤ Create User (ADMIN)
+
+```
 POST /api/user
-Headers: Authorization: Bearer <token>
+```
 
-How to get a token  :    npx nodemon tokenANDAdmin.js      then give token
-Body (JSON):
+**Body:**
+
+```json
 {
   "name": "Ayush",
   "email": "ayush@example.com",
@@ -90,14 +139,29 @@ Body (JSON):
   "role": "ANALYST",
   "status": "ACTIVE"
 }
-Get Users (ADMIN only)
+```
+
+---
+
+#### ➤ Get All Users (ADMIN)
+
+```
 GET /api/users
-Headers: Authorization: Bearer <token>
-Record Endpoints
-Create Record (ADMIN only)
+```
+
+---
+
+### 💰 Record Endpoints
+
+#### ➤ Create Record (ADMIN)
+
+```
 POST /api/records
-Headers: Authorization: Bearer <token>
-Body (JSON):
+```
+
+**Body:**
+
+```json
 {
   "amount": 1000,
   "type": "INCOME",
@@ -105,49 +169,92 @@ Body (JSON):
   "date": "2026-04-04",
   "createdBy": "<user_id>"
 }
-Get Records (ADMIN & ANALYST)
+```
+
+---
+
+#### ➤ Get Records (ADMIN, ANALYST)
+
+```
 GET /api/records
-Headers: Authorization: Bearer <token>
-Dashboard Endpoint
-Get Summary (ADMIN & ANALYST)
+```
+
+---
+
+### 📊 Dashboard Endpoint
+
+#### ➤ Get Summary (ADMIN, ANALYST)
+
+```
 GET /api/dashboard
-Headers: Authorization: Bearer <token>
-Response:
+```
+
+**Sample Response:**
+
+```json
 {
   "totalUsers": 3,
   "totalRecords": 5,
   "totalIncome": 5000,
   "totalExpense": 0
 }
-Authentication & Access Control
-All endpoints require JWT token in headers:
+```
+
+---
+
+## 🧪 Postman Testing Workflow
+
+1. Generate JWT token:
+
+```bash
+npx nodemon tokenANDAdmin.js
+```
+
+2. Add token to headers:
+
+```
 Authorization: Bearer <token>
-Roles determine access:
-ADMIN: Full access (users + records + dashboard)
-ANALYST: View records + dashboard
-VIEWER: View-only (future enhancement)
-Sample Dashboard Response
-{
-  "totalUsers": 3,
-  "totalRecords": 5,
-  "totalIncome": 5000,
-  "totalExpense": 0
-}
-Postman Testing Workflow
-Generate JWT token using the admin.js script.
-Copy token to Postman header:
-Authorization: Bearer <token>
-Test endpoints in order:
-Create User
-Get Users
-Create Record
-Get Records
-Get Dashboard
-Ensure all requests return expected responses according to roles.
+```
 
-Note:
-This backend is designed for evaluation purposes. The focus is on clarity, maintainability, and correct role-based access implementation.
+3. Test APIs in sequence:
 
-If you want, I can also create a one-click ready Postman JSON collection that has all endpoints + pre-configured token header so HR can just import and click Run All.
+* Create User
+* Get Users
+* Create Record
+* Get Records
+* Get Dashboard
 
-Do you want me to do that too?
+---
+
+## 📌 Notes
+
+* This project is designed for **evaluation and demonstration purposes**
+* Focus areas:
+
+  * Clean architecture
+  * Secure access control
+  * Maintainable code structure
+
+---
+
+## ✨ Future Enhancements
+
+* VIEWER role implementation
+* Pagination & filtering for records
+* Advanced analytics (monthly trends, charts)
+* Refresh tokens for authentication
+* Docker deployment support
+
+---
+
+## 🤝 Contribution
+
+Feel free to fork the repository and submit pull requests for improvements.
+
+---
+
+## 📄 License
+
+This project is open-source and available under the MIT License.
+
+---
