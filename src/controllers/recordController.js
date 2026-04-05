@@ -1,0 +1,37 @@
+
+const prisma = require("../prismaClient");
+
+
+const createRecord = async (req, res) => {
+  try {
+    const { amount, type, category, date, createdBy } = req.body;
+
+    const record = await prisma.record.create({
+      data: {
+        amount,
+        type,
+        category,
+        date: new Date(date),
+        createdBy,
+      },
+    });
+
+    res.status(201).json(record);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+const getRecords = async (req, res) => {
+  try {
+    const records = await prisma.record.findMany({
+      include: { user: true },
+    });
+    res.json(records);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { createRecord, getRecords };
