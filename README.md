@@ -1,135 +1,133 @@
-# 💼 Finance Data Processing & Access Control Backend
+# Finance Data Processing and Access Control Backend
 
-## 📌 Overview
+Backend for a finance dashboard: **JWT login**, **role-based access**, **user and record APIs**, and **dashboard aggregates**. Intended for clear HR or evaluator walkthroughs (Postman: login → users → records → dashboard).
 
-This project is a backend system for a finance dashboard that demonstrates **role-based access control (RBAC)**, **secure authentication**, and **financial data management**.
+## Table of contents
 
-It enables organizations to manage users and financial records efficiently while ensuring that access to data is restricted based on user roles.
+- [Project overview](#project-overview)
+- [Features](#features)
+- [Technology stack](#technology-stack)
+- [Setup](#setup-instructions)
+- [Environment variables](#environment-variables)
+- [API endpoints](#api-endpoints)
+- [Authentication and roles](#authentication--access-control)
+- [Postman (HR workflow)](#postman-testing-workflow)
+- [Sample responses](#sample-responses)
 
----
+## Project overview
 
-## 🚀 Features
+- **User management:** Create users, assign roles (`ADMIN`, `ANALYST`, `VIEWER`), status (`ACTIVE` / `INACTIVE`).
+- **Financial records:** Income/expense records linked to a user (`createdBy`).
+- **Dashboard:** Counts and totals (users, records, income, expense).
+- **Security:** JWT on protected routes; role checks per endpoint.
 
-### 👤 User Management
+## Features
 
-* Create users (**ADMIN only**)
-* View all users (**ADMIN only**)
-* Assign roles: `ADMIN`, `ANALYST`, `VIEWER`
-* Manage user status (ACTIVE/INACTIVE)
+| Area | Capability |
+|------|------------|
+| Auth | `POST /api/login` returns JWT + safe user profile (no password) |
+| Users | Create / list (**ADMIN**); responses never include password hashes |
+| Records | Create (**ADMIN**); list (**ADMIN** & **ANALYST**) |
+| Dashboard | Summary (**ADMIN** & **ANALYST**) |
 
-### 💰 Financial Records
+## Technology stack
 
-* Create financial records (**ADMIN only**)
-* View records (**ADMIN & ANALYST**)
-* Supports:
+| Layer | Technology |
+|-------|------------|
+| Runtime | Node.js, Express.js |
+| Database | PostgreSQL |
+| ORM | Prisma |
+| Auth | JWT (`jsonwebtoken`), `bcrypt` / `bcryptjs` |
 
-  * Income tracking
-  * Expense tracking
-  * Categorization and date-based records
+## Setup instructions
 
-### 📊 Dashboard Analytics
+1. **Clone and install**
 
-* Get aggregated financial insights:
+   ```bash
+   git clone <repo_url>
+   cd finance-backend
+   npm install
+   ```
 
-  * Total users
-  * Total records
-  * Total income
-  * Total expenses
-* Accessible by **ADMIN & ANALYST**
+2. **Environment**
 
-### 🔐 Security
+   Copy `.env.example` to `.env` and set values (see [Environment variables](#environment-variables)).
 
-* JWT-based authentication
-* Role-based authorization
-* Protected API endpoints
+3. **Database**
 
----
+   ```bash
+   npx prisma migrate dev --name init
+   npx prisma db seed
+   ```
 
-## 🛠️ Technology Stack
+   Seed creates a default **ADMIN** (see [Authentication](#authentication--access-control)).
 
-| Layer    | Technology            |
-| -------- | --------------------- |
-| Backend  | Node.js, Express.js   |
-| Database | SQLite                |
-| ORM      | Prisma                |
-| Auth     | JSON Web Tokens (JWT) |
-| Testing  | Postman               |
+4. **Run**
 
----
+   ```bash
+   npm start
+   ```
 
-## ⚙️ Setup Instructions
+   Default URL: `http://localhost:5000` (or your `PORT`).
 
-### 1️⃣ Clone Repository
+5. **Quick check**
 
-```bash
-git clone <repo_url>
-cd finance-backend
+   `GET http://localhost:5000/` returns a short list of recommended request order.
+
+## Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `PORT` | HTTP port (default `3000` in code if unset; use `5000` if you follow examples) |
+| `JWT_SECRET` | Secret for signing JWTs (required) |
+| `DATABASE_URL` | PostgreSQL connection string for Prisma |
+| `SEED_ADMIN_EMAIL` | Optional; default `admin@finance.local` |
+| `SEED_ADMIN_PASSWORD` | Optional; default `Admin@123456` |
+
+## API endpoints
+
+All paths below are under the `/api` prefix (e.g. full login URL: `POST /api/login`).
+
+### Recommended evaluation order
+
+1. **Login** — obtain token  
+2. **Users** — create / list (ADMIN)  
+3. **Records** — create (ADMIN), then list  
+4. **Dashboard** — summary  
+
+### `POST /api/login`
+
+Public. Body (JSON):
+
+```json
+{
+  "email": "admin@finance.local",
+  "password": "Admin@123456"
+}
 ```
 
-### 2️⃣ Install Dependencies
+Response (example):
 
-```bash
-npm install
+```json
+{
+  "token": "<jwt>",
+  "user": {
+    "id": "...",
+    "name": "System Admin",
+    "email": "admin@finance.local",
+    "role": "ADMIN",
+    "status": "ACTIVE"
+  }
+}
 ```
 
-### 3️⃣ Configure Environment Variables
+`INACTIVE` users receive `403`.
 
-Create a `.env` file in the root directory:
+### `POST /api/users` (ADMIN)
 
-```env
-PORT=5000
-JWT_SECRET=your_secret_key
-```
+Headers: `Authorization: Bearer <token>`
 
-### 4️⃣ Initialize Database
-
-```bash
-npx prisma migrate dev --name init
-```
-
-### 5️⃣ Start Server
-
-```bash
-node src/app.js
-```
-
-Server will run at:
-
-```
-http://localhost:5000
-```
-
----
-
-## 🔑 Authentication & Access Control
-
-All API endpoints require a JWT token:
-
-```
-Authorization: Bearer <token>
-```
-
-### 🎭 Roles & Permissions
-
-| Role    | Permissions                    |
-| ------- | ------------------------------ |
-| ADMIN   | Full access                    |
-| ANALYST | View records & dashboard       |
-| VIEWER  | Read-only (future enhancement) |
-
----
-
-## 📡 API Endpoints
-
-### 👤 User Endpoints
-
-#### ➤ Create User (ADMIN)
-
-```
-POST /api/user
-```
-
-**Body:**
+Body (JSON):
 
 ```json
 {
@@ -141,25 +139,17 @@ POST /api/user
 }
 ```
 
----
+### `GET /api/users` (ADMIN)
 
-#### ➤ Get All Users (ADMIN)
+Headers: `Authorization: Bearer <token>`
 
-```
-GET /api/users
-```
+Returns users **without** `password`; includes related `records`.
 
----
+### `POST /api/records` (ADMIN)
 
-### 💰 Record Endpoints
+Headers: `Authorization: Bearer <token>`
 
-#### ➤ Create Record (ADMIN)
-
-```
-POST /api/records
-```
-
-**Body:**
+Body (JSON):
 
 ```json
 {
@@ -171,25 +161,40 @@ POST /api/records
 }
 ```
 
----
+Use a real user `id` from login or `GET /api/users`.
 
-#### ➤ Get Records (ADMIN, ANALYST)
+### `GET /api/records` (ADMIN, ANALYST)
 
-```
-GET /api/records
-```
+Headers: `Authorization: Bearer <token>`
 
----
+### `GET /api/dashboard` (ADMIN, ANALYST)
 
-### 📊 Dashboard Endpoint
+Headers: `Authorization: Bearer <token>`
 
-#### ➤ Get Summary (ADMIN, ANALYST)
+## Authentication & access control
 
-```
-GET /api/dashboard
-```
+- Protected routes expect: `Authorization: Bearer <token>`.
+- **ADMIN:** users, records, dashboard.  
+- **ANALYST:** records (read), dashboard.  
+- **VIEWER:** reserved for future use.
 
-**Sample Response:**
+**Default seed admin** (unless overridden by env):
+
+- Email: `admin@finance.local`  
+- Password: `Admin@123456`  
+
+## Postman testing workflow
+
+1. Import **`postman/Finance-Backend.postman_collection.json`**.
+2. Set collection variable `baseUrl` if your server is not `http://localhost:5000`.
+3. Run **1 — Login** first (tests save `token` and `createdByUserId` for the demo record request).
+4. Run the remaining requests in order (or use **Run collection**).
+
+To test as **ANALYST**, create an analyst user while logged in as admin, then use **Login** with that analyst’s email/password and call **Get records** / **Dashboard** (not **Create user** / **Create record**).
+
+## Sample responses
+
+**Dashboard** (`GET /api/dashboard`):
 
 ```json
 {
@@ -202,59 +207,8 @@ GET /api/dashboard
 
 ---
 
-## 🧪 Postman Testing Workflow
+This backend is structured for **evaluation**: clear routes, explicit RBAC, and a reproducible seed + Postman flow for reviewers.
 
-1. Generate JWT token:
+## License
 
-```bash
-npx nodemon tokenANDAdmin.js
-```
-
-2. Add token to headers:
-
-```
-Authorization: Bearer <token>
-```
-
-3. Test APIs in sequence:
-
-* Create User
-* Get Users
-* Create Record
-* Get Records
-* Get Dashboard
-
----
-
-## 📌 Notes
-
-* This project is designed for **evaluation and demonstration purposes**
-* Focus areas:
-
-  * Clean architecture
-  * Secure access control
-  * Maintainable code structure
-
----
-
-## ✨ Future Enhancements
-
-* VIEWER role implementation
-* Pagination & filtering for records
-* Advanced analytics (monthly trends, charts)
-* Refresh tokens for authentication
-* Docker deployment support
-
----
-
-## 🤝 Contribution
-
-Feel free to fork the repository and submit pull requests for improvements.
-
----
-
-## 📄 License
-
-This project is open-source and available under the MIT License.
-
----
+MIT (or as specified by your course).

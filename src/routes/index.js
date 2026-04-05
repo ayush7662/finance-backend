@@ -8,9 +8,12 @@ const authorize = require("../middlewares/authorize");
 const user = require("../controllers/userController");
 const record = require("../controllers/recordController");
 const dashboard = require("../controllers/dashboardController");
+const authController = require("../controllers/authController");
+
+router.post("/login", authController.login);
 
 
-router.post("/user", auth, authorize(["ADMIN"]), user.createUser);
+router.post("/users", auth, authorize(["ADMIN"]), user.createUser);
 router.get("/users", auth, authorize(["ADMIN"]), user.getUsers);
 
 

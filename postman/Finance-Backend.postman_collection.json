@@ -1,0 +1,119 @@
+{
+  "info": {
+    "name": "Finance Backend — HR evaluation",
+    "description": "Run in order: 1) Login saves the token. 2) Users → Records → Dashboard.\n\nDefault admin (after `npx prisma db seed`): admin@finance.local / Admin@123456",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "createdByUserId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1 — Login (ADMIN)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const j = pm.response.json();",
+              "if (j.token) {",
+              "  pm.collectionVariables.set('token', j.token);",
+              "  if (j.user && j.user.id) pm.collectionVariables.set('createdByUserId', j.user.id);",
+              "}",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has token', () => pm.expect(j).to.have.property('token'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@finance.local\",\n  \"password\": \"Admin@123456\"\n}"
+        },
+        "url": "{{baseUrl}}/api/login"
+      }
+    },
+    {
+      "name": "2 — Create user (ADMIN)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Demo Analyst\",\n  \"email\": \"analyst@finance.local\",\n  \"password\": \"Analyst@123\",\n  \"role\": \"ANALYST\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": "{{baseUrl}}/api/users"
+      }
+    },
+    {
+      "name": "3 — Get users (ADMIN)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/users"
+      }
+    },
+    {
+      "name": "4 — Create record (ADMIN)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 1000,\n  \"type\": \"INCOME\",\n  \"category\": \"Salary\",\n  \"date\": \"2026-04-04\",\n  \"createdBy\": \"{{createdByUserId}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/records"
+      }
+    },
+    {
+      "name": "5 — Get records (ADMIN / ANALYST)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/records"
+      }
+    },
+    {
+      "name": "6 — Dashboard summary (ADMIN / ANALYST)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/dashboard"
+      }
+    },
+    {
+      "name": "Root — API map",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/"
+      }
+    }
+  ]
+}

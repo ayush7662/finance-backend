@@ -6,6 +6,11 @@ const createRecord = async (req, res) => {
   try {
     const { amount, type, category, date, createdBy } = req.body;
 
+    if (amount == null || !type || !category || !date || !createdBy)
+      return res.status(400).json({
+        message: "amount, type, category, date, and createdBy are required",
+      });
+
     const record = await prisma.record.create({
       data: {
         amount,
@@ -26,7 +31,18 @@ const createRecord = async (req, res) => {
 const getRecords = async (req, res) => {
   try {
     const records = await prisma.record.findMany({
-      include: { user: true },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            status: true,
+            createdAt: true,
+          },
+        },
+      },
     });
     res.json(records);
   } catch (err) {
